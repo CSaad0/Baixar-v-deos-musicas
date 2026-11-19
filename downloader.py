@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+import sys
 from typing import Callable
 
 import yt_dlp
@@ -27,6 +28,14 @@ QUALIDADES_AUDIO = ["Melhor", "320 kbps", "256 kbps", "192 kbps", "128 kbps", "9
 QUALIDADES_VIDEO = ["Melhor", "2160p", "1440p", "1080p", "720p", "480p", "360p"]
 
 
+def _pasta_ffmpeg() -> str | None:
+    """No executável (PyInstaller), o FFmpeg vem embutido junto do programa."""
+    base = getattr(sys, "_MEIPASS", None)
+    if base and os.path.exists(os.path.join(base, "ffmpeg.exe" if os.name == "nt" else "ffmpeg")):
+        return base
+    return None
+
+
 def qualidades_para(formato: str) -> list[str]:
     formato = formato.upper()
     if FORMATOS.get(formato) == "video":
@@ -43,12 +52,15 @@ def montar_opcoes(formato: str, qualidade: str, pasta: str) -> dict:
         raise ValueError(f"Formato não suportado: {formato}")
 
     opts: dict = {
-        "outtmpl": os.path.join(pasta, "%(title)s.%(ext)s"),
+        "outtmpl": os.path.join(pasta, "%(title).150B.%(ext)s"),
         "noplaylist": True,
         "quiet": True,
         "no_warnings": True,
         "noprogress": True,
     }
+    ffmpeg = _pasta_ffmpeg()
+    if ffmpeg:
+        opts["ffmpeg_location"] = ffmpeg
 
     if FORMATOS[formato] == "audio":
         pp: dict = {"key": "FFmpegExtractAudio", "preferredcodec": formato.lower()}
@@ -63,8 +75,12 @@ def montar_opcoes(formato: str, qualidade: str, pasta: str) -> dict:
             opts["writethumbnail"] = True
             opts["postprocessors"].append({"key": "EmbedThumbnail"})
     else:
-        limite = "" if qualidade == "Melhor" else f"[height<={qualidade.rstrip('p')}]"
-        opts["format"] = f"bestvideo{limite}+bestaudio/best{limite}/best"
+        h = "" if qualidade == "Melhor" else f"[height<={qualidade.rstrip('p')}]"
+        if formato == "MP4":
+            # Prefere H.264 + AAC, que tocam em qualquer player
+            opts["format"] = f"bv*[ext=mp4]{h}+ba[ext=m4a]/b[ext=mp4]{h}/bv*{h}+ba/b{h}/b"
+        else:
+            opts["format"] = f"bv*{h}+ba/b{h}/b"
         opts["merge_output_format"] = formato.lower()
 
     return opts
