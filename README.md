@@ -8,7 +8,20 @@ Programa com interface gráfica para baixar músicas (e vídeos) a partir de um 
 - **Qualidade:** 320/256/192/128/96 kbps para áudio, ou 2160p a 360p para vídeo
 - Escolha da pasta de destino, barra de progresso, capa e metadados embutidos no áudio
 
-## Requisitos
+## Download (sem precisar de Python)
+
+Pegue a versão mais recente na página de [Releases](https://github.com/CSaad0/Baixar-v-deos-musicas/releases/latest):
+
+- **Windows:** `BaixadorDeMusicas.exe` — dois cliques e pronto (FFmpeg já incluso)
+- **Android:** `BaixadorDeMusicas-arm64.apk` (celulares atuais) ou `-universal.apk` (qualquer aparelho).
+  Arquivos ficam em `Download/Baixador`. Dica: no YouTube, use *Compartilhar → Baixador de Músicas*.
+
+Os arquivos são gerados automaticamente pelo GitHub Actions (`.github/workflows/build.yml`) a cada push.
+O código do app Android está em `android/`.
+
+## Rodando pelo código-fonte (Python)
+
+### Requisitos
 
 1. [Python 3.9+](https://www.python.org/downloads/) (no Windows, marque "Add Python to PATH"; o Tkinter já vem junto)
 2. [FFmpeg](https://ffmpeg.org/download.html) instalado e no PATH
@@ -16,7 +29,7 @@ Programa com interface gráfica para baixar músicas (e vídeos) a partir de um 
    - macOS: `brew install ffmpeg`
    - Linux: `sudo apt install ffmpeg python3-tk`
 
-## Instalação e uso
+### Instalação e uso
 
 ```bash
 pip install -r requirements.txt
